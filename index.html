@@ -1,415 +1,539 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HACKER STYLE • DI NGUY</title>
+    <title>DI NGUY // CYBER SECURITY & RECOVERY</title>
+    <!-- Tải Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tải Google Fonts: JetBrains Mono & Orbitron cho phong cách Cyber/Hacker -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Courier New', Courier, monospace;
+        :root {
+            --neon-green: #00ff41;
+            --neon-cyan: #00f3ff;
+            --dark-bg: #030706;
+            --panel-bg: rgba(5, 18, 14, 0.82);
         }
 
         body {
-            background-color: #000;
-            color: #0f0;
-            min-height: 100vh;
+            background-color: var(--dark-bg);
+            color: #e0f2fe;
+            font-family: 'JetBrains Mono', monospace;
             overflow-x: hidden;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            margin: 0;
+            padding: 0;
         }
 
-        /* Hiệu ứng nền matrix mờ */
+        /* Canvas nền Matrix */
         #matrix-canvas {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             z-index: 0;
-            opacity: 0.3;
+            opacity: 0.45;
             pointer-events: none;
         }
 
-        .content {
+        /* Lớp phủ Scanline màn hình CRT cổ điển */
+        .crt-overlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            ), linear-gradient(
+                90deg,
+                rgba(255, 0, 0, 0.03),
+                rgba(0, 255, 0, 0.01),
+                rgba(0, 0, 255, 0.03)
+            );
+            background-size: 100% 3px, 6px 100%;
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        /* Hiệu ứng chữ Glitch & Sóng chuyển động cho "Di Nguy" */
+        .di-nguy-title {
+            font-family: 'Orbitron', sans-serif;
             position: relative;
-            z-index: 10;
+            color: #fff;
+            text-shadow: 
+                0 0 10px var(--neon-green),
+                0 0 25px var(--neon-green),
+                0 0 50px var(--neon-cyan);
+            animation: floatWave 3.5s ease-in-out infinite, neonPulse 2s alternate infinite;
+            letter-spacing: 0.12em;
+        }
+
+        .di-nguy-title::before,
+        .di-nguy-title::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 1000px;
-            padding: 20px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-            margin-top: 40px;
-            margin-bottom: 40px;
+            height: 100%;
+            opacity: 0.85;
         }
 
-        /* Tiêu đề hacker */
-        .hacker-title {
-            font-size: 3rem;
-            letter-spacing: 6px;
-            text-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 40px #0f0;
-            animation: flicker 3s infinite alternate;
-            border-right: 4px solid #0f0;
-            white-space: nowrap;
-            overflow: hidden;
-            margin: 0 auto;
-            width: fit-content;
-            padding-right: 10px;
-            font-weight: bold;
+        .di-nguy-title::before {
+            color: var(--neon-cyan);
+            z-index: -1;
+            animation: glitch-anim-1 2.5s infinite linear alternate-reverse;
         }
 
-        @keyframes flicker {
-            0% { opacity: 1; text-shadow: 0 0 10px #0f0, 0 0 20px #0f0; }
-            50% { opacity: 0.9; text-shadow: 0 0 5px #0f0, 0 0 15px #0f0; }
-            100% { opacity: 1; text-shadow: 0 0 20px #0f0, 0 0 40px #0f0, 0 0 60px #0f0; }
+        .di-nguy-title::after {
+            color: #ff0055;
+            z-index: -2;
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
         }
 
-        /* Khung mã chạy liên tục */
-        .code-stream {
-            background: rgba(0, 20, 0, 0.8);
-            border: 2px solid #0f0;
-            border-radius: 10px;
-            padding: 20px 25px;
-            text-align: left;
-            font-size: 1.2rem;
-            line-height: 1.8;
-            box-shadow: 0 0 20px #0f0, inset 0 0 15px #0f0;
-            width: 100%;
-            max-width: 700px;
-            margin: 0 auto;
-            overflow: hidden;
-            position: relative;
-            backdrop-filter: blur(2px);
-            height: 220px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            letter-spacing: 1px;
-        }
-
-        .code-line {
-            white-space: nowrap;
-            overflow: hidden;
-            border-right: 2px solid #0f0;
-            animation: typing 4s steps(40, end) infinite, blink 0.8s step-end infinite;
-            color: #0f0;
-            text-shadow: 0 0 5px #0f0;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            opacity: 0.9;
-        }
-
-        .code-line:nth-child(1) { animation-delay: 0s; width: 100%; }
-        .code-line:nth-child(2) { animation-delay: 0.8s; width: 90%; }
-        .code-line:nth-child(3) { animation-delay: 1.6s; width: 95%; }
-        .code-line:nth-child(4) { animation-delay: 2.4s; width: 85%; }
-        .code-line:nth-child(5) { animation-delay: 3.2s; width: 100%; }
-        .code-line:nth-child(6) { animation-delay: 4.0s; width: 80%; }
-
-        @keyframes typing {
-            0% { width: 0; }
-            50% { width: 100%; }
-            100% { width: 0; }
-        }
-
-        @keyframes blink {
-            from, to { border-color: transparent; }
-            50% { border-color: #0f0; }
-        }
-
-        /* Chữ Di Nguy chuyển động */
-        .di-nguy-container {
-            margin: 20px auto;
-            font-size: 3.5rem;
-            font-weight: 900;
-            letter-spacing: 12px;
-            text-transform: uppercase;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            perspective: 800px;
-        }
-
-        .di-nguy-word {
-            display: inline-block;
-            animation: floatGlow 2s infinite alternate ease-in-out;
-            text-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0, 0 0 50px #0f0;
-            color: #0f0;
-            transform-origin: center;
-            background: linear-gradient(45deg, #0f0, #8f0, #0f0);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        .di-nguy-word:nth-child(1) { animation-delay: 0s; }
-        .di-nguy-word:nth-child(2) { animation-delay: 0.2s; }
-        .di-nguy-word:nth-child(3) { animation-delay: 0.4s; }
-        .di-nguy-word:nth-child(4) { animation-delay: 0.6s; }
-        .di-nguy-word:nth-child(5) { animation-delay: 0.8s; }
-        .di-nguy-word:nth-child(6) { animation-delay: 1.0s; }
-        .di-nguy-word:nth-child(7) { animation-delay: 1.2s; }
-
-        @keyframes floatGlow {
-            0% {
-                transform: translateY(0px) rotateX(0deg) scale(1);
-                text-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0;
+        @keyframes floatWave {
+            0%, 100% {
+                transform: translateY(0px) skewX(0deg);
             }
-            100% {
-                transform: translateY(-15px) rotateX(10deg) scale(1.1);
-                text-shadow: 0 0 20px #0f0, 0 0 40px #0f0, 0 0 60px #0f0, 0 0 80px #0f0;
+            25% {
+                transform: translateY(-8px) skewX(-2deg);
+            }
+            50% {
+                transform: translateY(0px) skewX(0deg);
+            }
+            75% {
+                transform: translateY(6px) skewX(2deg);
             }
         }
 
-        /* Phần hỗ trợ lấy lại tài khoản */
-        .support-section {
-            background: rgba(0, 30, 0, 0.7);
-            border: 2px dashed #0f0;
-            border-radius: 20px;
-            padding: 30px 20px;
-            margin-top: 30px;
-            box-shadow: 0 0 30px #0f0, inset 0 0 20px rgba(0, 255, 0, 0.3);
-            backdrop-filter: blur(4px);
-            width: 100%;
-            max-width: 800px;
-            align-self: center;
+        @keyframes neonPulse {
+            from {
+                text-shadow: 0 0 10px #00ff41, 0 0 20px #00ff41, 0 0 40px #00f3ff;
+            }
+            to {
+                text-shadow: 0 0 15px #00f3ff, 0 0 35px #00ff41, 0 0 70px #00ff41;
+            }
         }
 
-        .support-section h2 {
-            font-size: 2.2rem;
-            margin-bottom: 20px;
-            color: #0f0;
-            text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
-            letter-spacing: 3px;
-            animation: pulseText 1.5s infinite alternate;
+        @keyframes glitch-anim-1 {
+            0% { clip-path: inset(20% 0 60% 0); transform: translate(-3px, 1px); }
+            20% { clip-path: inset(60% 0 10% 0); transform: translate(3px, -1px); }
+            40% { clip-path: inset(40% 0 40% 0); transform: translate(-2px, 2px); }
+            60% { clip-path: inset(80% 0 5% 0); transform: translate(2px, -2px); }
+            80% { clip-path: inset(10% 0 70% 0); transform: translate(-1px, 1px); }
+            100% { clip-path: inset(30% 0 50% 0); transform: translate(3px, 0); }
         }
 
-        @keyframes pulseText {
-            0% { opacity: 0.9; text-shadow: 0 0 5px #0f0, 0 0 15px #0f0; }
-            100% { opacity: 1; text-shadow: 0 0 20px #0f0, 0 0 40px #0f0, 0 0 60px #0f0; }
+        @keyframes glitch-anim-2 {
+            0% { clip-path: inset(15% 0 65% 0); transform: translate(3px, -1px); }
+            25% { clip-path: inset(70% 0 15% 0); transform: translate(-3px, 2px); }
+            50% { clip-path: inset(25% 0 55% 0); transform: translate(2px, -2px); }
+            75% { clip-path: inset(50% 0 30% 0); transform: translate(-2px, 1px); }
+            100% { clip-path: inset(5% 0 80% 0); transform: translate(1px, -1px); }
         }
 
-        .support-section p {
-            font-size: 1.5rem;
-            line-height: 1.8;
-            color: #b3ffb3;
-            text-shadow: 0 0 5px #0f0;
-            margin-bottom: 15px;
-            font-weight: bold;
-            letter-spacing: 1px;
+        /* Khung Cyber Panel */
+        .cyber-box {
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 255, 65, 0.35);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.1), inset 0 0 15px rgba(0, 243, 255, 0.05);
+            backdrop-filter: blur(8px);
+            position: relative;
         }
 
-        .highlight {
-            color: #ff0;
-            text-shadow: 0 0 10px #ff0, 0 0 20px #ff0;
-            animation: blinkFast 0.8s infinite alternate;
+        .cyber-box::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            width: 14px;
+            height: 14px;
+            border-top: 2px solid var(--neon-cyan);
+            border-left: 2px solid var(--neon-cyan);
         }
 
-        @keyframes blinkFast {
-            from { opacity: 1; }
-            to { opacity: 0.6; }
+        .cyber-box::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            right: -1px;
+            width: 14px;
+            height: 14px;
+            border-bottom: 2px solid var(--neon-cyan);
+            border-right: 2px solid var(--neon-cyan);
         }
 
-        /* Logo Zalo + SDT */
-        .zalo-contact {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 30px;
-            margin-bottom: 20px;
-            background: rgba(0, 40, 0, 0.8);
-            padding: 15px 30px;
-            border-radius: 60px;
-            border: 2px solid #0f0;
-            box-shadow: 0 0 30px #0f0, inset 0 0 15px #0f0;
-            width: fit-content;
-            align-self: center;
+        /* Thanh cuộn tùy chỉnh */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #020504;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #00ff41;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f3ff;
+        }
+
+        /* Nút Zalo phát sáng */
+        .zalo-btn {
+            background: linear-gradient(135deg, #0068ff 0%, #00a2ff 100%);
+            box-shadow: 0 0 20px rgba(0, 104, 255, 0.5);
             transition: all 0.3s ease;
         }
-
-        .zalo-contact:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 50px #0f0, inset 0 0 25px #0f0;
-        }
-
-        .zalo-logo {
-            width: 60px;
-            height: 60px;
-            background: #0068FF;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 2rem;
-            color: white;
-            box-shadow: 0 0 20px #00aaff, 0 0 40px #00aaff;
-            animation: zaloGlow 1.5s infinite alternate;
-        }
-
-        @keyframes zaloGlow {
-            from { box-shadow: 0 0 15px #0068FF, 0 0 30px #0068FF; }
-            to { box-shadow: 0 0 30px #00aaff, 0 0 60px #00aaff, 0 0 80px #00aaff; }
-        }
-
-        .zalo-phone {
-            font-size: 2.2rem;
-            font-weight: 900;
-            letter-spacing: 4px;
-            color: #0f0;
-            text-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 30px #0f0;
-        }
-
-        .zalo-phone span {
-            color: #ff0;
-            text-shadow: 0 0 10px #ff0, 0 0 20px #ff0;
-        }
-
-        /* Nút giả lập (chỉ để ngầu) */
-        .fake-btn {
-            margin-top: 15px;
-            background: transparent;
-            border: 2px solid #0f0;
-            color: #0f0;
-            padding: 10px 30px;
-            font-size: 1.3rem;
-            font-weight: bold;
-            border-radius: 40px;
-            cursor: pointer;
-            transition: 0.3s;
-            text-shadow: 0 0 5px #0f0;
-            letter-spacing: 3px;
-            box-shadow: 0 0 10px #0f0;
-        }
-
-        .fake-btn:hover {
-            background: #0f0;
-            color: #000;
-            box-shadow: 0 0 30px #0f0, 0 0 60px #0f0;
-        }
-
-        /* Responsive */
-        @media (max-width: 600px) {
-            .hacker-title { font-size: 2rem; letter-spacing: 3px; white-space: normal; }
-            .code-stream { font-size: 0.9rem; height: 180px; padding: 15px; }
-            .di-nguy-container { font-size: 2rem; letter-spacing: 6px; }
-            .support-section h2 { font-size: 1.6rem; }
-            .support-section p { font-size: 1.1rem; }
-            .zalo-phone { font-size: 1.5rem; }
-            .zalo-logo { width: 45px; height: 45px; font-size: 1.5rem; }
+        .zalo-btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.8);
         }
     </style>
 </head>
-<body>
-    <!-- Canvas Matrix -->
+<body class="selection:bg-[#00ff41] selection:text-black">
+
+    <!-- Canvas hiệu ứng Matrix chạy liên tục ở nền -->
     <canvas id="matrix-canvas"></canvas>
+    <!-- Lớp phủ Scanline -->
+    <div class="crt-overlay"></div>
 
-    <div class="content">
-        <!-- Tiêu đề hacker -->
-        <div class="hacker-title">⚡ HACKER ZONE ⚡</div>
-
-        <!-- Đoạn mã chạy liên tục -->
-        <div class="code-stream">
-            <div class="code-line">> sudo access --root --bypass-security</div>
-            <div class="code-line">> decrypting database... [OK]</div>
-            <div class="code-line">> injecting payload... 100%</div>
-            <div class="code-line">> tracing IP... 192.168.1.1</div>
-            <div class="code-line">> firewall disabled. welcome, admin.</div>
-            <div class="code-line">> system compromised. enjoy!</div>
+    <!-- Thanh điều hướng tối giản -->
+    <header class="fixed top-0 left-0 w-full z-40 border-b border-[#00ff41]/30 bg-black/75 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#00ff41] animate-ping"></span>
+                <span class="text-[#00ff41] font-bold tracking-widest text-sm sm:text-base">SYS.ROOT // DI_NGUY</span>
+            </div>
+            <nav class="flex items-center space-x-4 sm:space-x-6 text-xs sm:text-sm">
+                <a href="#hero" class="text-gray-300 hover:text-[#00f3ff] transition">[HOME]</a>
+                <a href="#services" class="text-gray-300 hover:text-[#00ff41] transition">[DỊCH_VỤ]</a>
+                <a href="#contact" class="px-3 py-1.5 rounded border border-[#00f3ff] text-[#00f3ff] hover:bg-[#00f3ff] hover:text-black font-semibold transition">
+                    LIÊN HỆ ZALO
+                </a>
+            </nav>
         </div>
+    </header>
 
-        <!-- Chữ Di Nguy chuyển động -->
-        <div class="di-nguy-container">
-            <span class="di-nguy-word">D</span>
-            <span class="di-nguy-word">I</span>
-            <span class="di-nguy-word"> </span>
-            <span class="di-nguy-word">N</span>
-            <span class="di-nguy-word">G</span>
-            <span class="di-nguy-word">U</span>
-            <span class="di-nguy-word">Y</span>
+    <!-- PHẦN 1: HERO SECTION -->
+    <section id="hero" class="relative z-10 min-h-screen flex flex-col justify-center items-center px-4 pt-20 pb-12">
+        <div class="max-w-6xl w-full mx-auto flex flex-col items-center text-center">
+            
+            <!-- Nhãn trạng thái hệ thống -->
+            <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full border border-[#00ff41]/50 bg-black/70 text-[#00ff41] text-xs sm:text-sm mb-6">
+                <span class="animate-pulse">●</span>
+                <span>CONNECTION ESTABLISHED // SECURE TERMINAL v4.0</span>
+            </div>
+
+            <!-- Dòng chữ DI NGUY lớn với hiệu ứng Glitch & Chuyển động sóng -->
+            <div class="my-4 sm:my-6 select-none">
+                <h1 class="di-nguy-title text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black uppercase" data-text="Di Nguy">
+                    Di Nguy
+                </h1>
+            </div>
+
+            <p class="max-w-2xl text-gray-300 text-sm sm:text-base md:text-lg mb-8 leading-relaxed bg-black/60 px-4 py-2 rounded border border-gray-800">
+                Chuyên gia giải pháp bảo mật số &amp; khôi phục dữ liệu tài khoản đa nền tảng. Tốc độ - Uy tín - Bảo mật tuyệt đối.
+            </p>
+
+            <!-- Hai khung Terminal chạy mã code giả lập liên tục -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full max-w-5xl text-left mb-10">
+                <!-- Terminal 1: System Decryption Stream -->
+                <div class="cyber-box rounded-lg overflow-hidden">
+                    <div class="bg-[#071f17] px-3 py-2 border-b border-[#00ff41]/30 flex items-center justify-between">
+                        <div class="flex space-x-1.5">
+                            <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
+                            <span class="w-3 h-3 rounded-full bg-yellow-500/80"></span>
+                            <span class="w-3 h-3 rounded-full bg-green-500/80"></span>
+                        </div>
+                        <span class="text-xs text-[#00ff41] font-semibold">root@di-nguy:~/recovery_engine</span>
+                        <span class="text-[10px] text-[#00f3ff] animate-pulse">RUNNING</span>
+                    </div>
+                    <div id="terminal-log-1" class="p-3 h-44 sm:h-48 overflow-hidden text-xs sm:text-[13px] font-mono text-[#00ff41] space-y-1 leading-snug">
+                        <!-- Log sẽ được bơm tự động bằng JS -->
+                    </div>
+                </div>
+
+                <!-- Terminal 2: Live Hex & Packet Monitor -->
+                <div class="cyber-box rounded-lg overflow-hidden">
+                    <div class="bg-[#071921] px-3 py-2 border-b border-[#00f3ff]/30 flex items-center justify-between">
+                        <div class="flex space-x-1.5">
+                            <span class="w-3 h-3 rounded-full bg-[#00f3ff]/80"></span>
+                            <span class="w-3 h-3 rounded-full bg-[#00ff41]/80"></span>
+                        </div>
+                        <span class="text-xs text-[#00f3ff] font-semibold">net_trace@secure_node:~/bypass_shield</span>
+                        <span class="text-[10px] text-[#00ff41] animate-pulse">ACTIVE</span>
+                    </div>
+                    <div id="terminal-log-2" class="p-3 h-44 sm:h-48 overflow-hidden text-xs sm:text-[13px] font-mono text-[#00f3ff] space-y-1 leading-snug">
+                        <!-- Hex dump chạy tự động bằng JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mũi tên chỉ dẫn lướt xuống -->
+            <a href="#services" class="group flex flex-col items-center text-xs text-gray-400 hover:text-[#00ff41] transition">
+                <span class="tracking-widest mb-2">LƯỚT XUỐNG ĐỂ XEM DỊCH VỤ</span>
+                <div class="w-6 h-10 rounded-full border-2 border-[#00ff41]/60 flex justify-center p-1">
+                    <div class="w-1.5 h-2.5 bg-[#00ff41] rounded-full animate-bounce"></div>
+                </div>
+            </a>
         </div>
+    </section>
 
-        <!-- Hỗ trợ lấy lại tài khoản -->
-        <div class="support-section">
-            <h2>🔓 HỖ TRỢ LẤY LẠI TÀI KHOẢN 🔓</h2>
-            <p>Mất tài khoản? <span class="highlight">MẤT TẤT CẢ</span> loại tài khoản?</p>
-            <p>Chúng tôi có thể giúp bạn <span class="highlight">KHÔI PHỤC</span> mọi thứ!</p>
-            <p style="font-size: 1.2rem; color: #0f0; margin-top: 15px;">➤ Liên hệ ngay để được hỗ trợ 24/7</p>
-            <button class="fake-btn" onclick="alert('Liên hệ Zalo: 0378257342 để được hỗ trợ!')">KÍCH HOẠT HỖ TRỢ</button>
+    <!-- PHẦN 2: KHU VỰC DỊCH VỤ & HỖ TRỢ LẤY LẠI TÀI KHOẢN -->
+    <section id="services" class="relative z-10 py-20 px-4 border-t border-[#00ff41]/20 bg-gradient-to-b from-transparent via-black/90 to-black">
+        <div class="max-w-6xl mx-auto">
+            
+            <!-- Tiêu đề khu vực dịch vụ -->
+            <div class="text-center mb-14">
+                <span class="text-xs sm:text-sm text-[#00f3ff] tracking-[0.25em] uppercase block mb-2">
+                    // SYSTEM RECOVERY MODULE
+                </span>
+                <h2 class="text-2xl sm:text-4xl md:text-5xl font-extrabold text-white leading-tight mb-4">
+                    <span class="text-[#00ff41]">HỖ TRỢ LẤY LẠI TÀI KHOẢN</span><br>
+                    KHI MẤT TẤT CẢ CÁC LOẠI TÀI KHOẢN
+                </h2>
+                <div class="w-24 h-1 bg-gradient-to-r from-[#00ff41] to-[#00f3ff] mx-auto rounded-full mb-5"></div>
+                <p class="max-w-2xl mx-auto text-gray-300 text-sm sm:text-base">
+                    Bạn bị quên mật khẩu, mất số điện thoại xác minh, bị đổi email, hoặc bị chiếm quyền kiểm soát? 
+                    Hệ thống hỗ trợ xử lý nhanh chóng, bảo mật thông tin khách hàng 100%.
+                </p>
+            </div>
+
+            <!-- Lưới các loại tài khoản hỗ trợ -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+                <!-- Card 1: Facebook / Meta -->
+                <div class="cyber-box rounded-xl p-6 hover:border-[#00f3ff] transition duration-300 group">
+                    <div class="w-12 h-12 rounded-lg bg-[#00ff41]/10 border border-[#00ff41]/40 flex items-center justify-center mb-4 text-[#00ff41] group-hover:scale-110 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2 group-hover:text-[#00f3ff] transition">Mạng Xã Hội</h3>
+                    <p class="text-xs sm:text-sm text-gray-400 leading-relaxed">
+                        Khôi phục Facebook, Instagram, Threads bị hack, quên mật khẩu, mất 2FA, khóa két sắt tím 956 hoặc 282.
+                    </p>
+                </div>
+
+                <!-- Card 2: TikTok & Giải trí -->
+                <div class="cyber-box rounded-xl p-6 hover:border-[#00f3ff] transition duration-300 group">
+                    <div class="w-12 h-12 rounded-lg bg-[#00f3ff]/10 border border-[#00f3ff]/40 flex items-center justify-center mb-4 text-[#00f3ff] group-hover:scale-110 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2 group-hover:text-[#00f3ff] transition">TikTok &amp; Kênh Video</h3>
+                    <p class="text-xs sm:text-sm text-gray-400 leading-relaxed">
+                        Lấy lại tài khoản TikTok bị đổi SĐT/Email, đình chỉ hoặc mất quyền truy cập kênh cá nhân, kênh bán hàng.
+                    </p>
+                </div>
+
+                <!-- Card 3: Gmail / Google / iCloud -->
+                <div class="cyber-box rounded-xl p-6 hover:border-[#00f3ff] transition duration-300 group">
+                    <div class="w-12 h-12 rounded-lg bg-[#00ff41]/10 border border-[#00ff41]/40 flex items-center justify-center mb-4 text-[#00ff41] group-hover:scale-110 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2 group-hover:text-[#00f3ff] transition">Gmail &amp; Đám Mây</h3>
+                    <p class="text-xs sm:text-sm text-gray-400 leading-relaxed">
+                        Hỗ trợ xác minh khôi phục tài khoản Google, Gmail, iCloud khi mất sim cũ hoặc quên thông tin bảo mật.
+                    </p>
+                </div>
+
+                <!-- Card 4: Tài khoản Game & Khác -->
+                <div class="cyber-box rounded-xl p-6 hover:border-[#00f3ff] transition duration-300 group">
+                    <div class="w-12 h-12 rounded-lg bg-[#00f3ff]/10 border border-[#00f3ff]/40 flex items-center justify-center mb-4 text-[#00f3ff] group-hover:scale-110 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2 group-hover:text-[#00f3ff] transition">Tài Khoản Game &amp; Khác</h3>
+                    <p class="text-xs sm:text-sm text-gray-400 leading-relaxed">
+                        Hỗ trợ lấy lại nick Garena, Liên Quân, Free Fire, PUBG, Zalo và bảo mật chống xâm nhập trái phép.
+                    </p>
+                </div>
+            </div>
+
+            <!-- KHU VỰC LIÊN HỆ ZALO NỔI BẬT -->
+            <div id="contact" class="cyber-box rounded-2xl p-6 sm:p-10 max-w-3xl mx-auto text-center border-2 border-[#00f3ff]/60">
+                <div class="inline-block px-3 py-1 rounded bg-[#00ff41]/15 text-[#00ff41] text-xs font-bold tracking-widest mb-4">
+                    DIRECT SECURE CONTACT // 24/7 ONLINE
+                </div>
+                
+                <h3 class="text-xl sm:text-3xl font-extrabold text-white mb-3">
+                    KẾT NỐI TRỰC TIẾP QUA ZALO
+                </h3>
+                <p class="text-gray-300 text-sm sm:text-base mb-8">
+                    Nhắn tin ngay để được kiểm tra tình trạng tài khoản miễn phí và tư vấn phương án khôi phục nhanh nhất.
+                </p>
+
+                <!-- Cụm nút Zalo + Copy SĐT -->
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <!-- Nút mở Zalo chính -->
+                    <a href="https://zalo.me/0378257342" target="_blank" rel="noopener noreferrer" 
+                       class="zalo-btn w-full sm:w-auto flex items-center justify-center space-x-3 px-7 py-4 rounded-xl text-white font-bold text-lg sm:text-xl">
+                        <!-- Logo Zalo chuẩn SVG -->
+                        <svg class="w-9 h-9 shrink-0" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="48" height="48" rx="12" fill="white"/>
+                            <path d="M24 8C14.611 8 7 14.52 7 22.56C7 27.14 9.47 31.22 13.34 33.89L11.83 39.42C11.68 39.96 12.24 40.42 12.74 40.15L19.12 36.74C20.69 37.09 22.32 37.28 24 37.28C33.389 37.28 41 30.76 41 22.72C41 14.68 33.389 8 24 8Z" fill="#0068FF"/>
+                            <text x="24" y="26.5" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-weight="900" font-size="11.5" letter-spacing="-0.3">Zalo</text>
+                        </svg>
+                        <div class="text-left">
+                            <span class="block text-[11px] uppercase tracking-wider text-blue-100 font-normal">Chat Zalo Ngay</span>
+                            <span class="tracking-wider">0378257342</span>
+                        </div>
+                    </a>
+
+                    <!-- Nút sao chép số điện thoại -->
+                    <button id="copy-phone-btn" type="button"
+                            class="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-4 rounded-xl border border-[#00ff41] bg-black/70 text-[#00ff41] hover:bg-[#00ff41] hover:text-black font-bold transition cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        <span id="copy-btn-text">SAO CHÉP SĐT</span>
+                    </button>
+                </div>
+
+                <!-- Thông báo copy thành công (thay thế alert) -->
+                <div id="copy-toast" class="mt-4 text-xs sm:text-sm text-[#00f3ff] font-semibold opacity-0 transition-opacity duration-300">
+                    ✓ Đã sao chép số Zalo: 0378257342 vào bộ nhớ tạm!
+                </div>
+            </div>
+
         </div>
+    </section>
 
-        <!-- Logo Zalo + số điện thoại -->
-        <div class="zalo-contact">
-            <div class="zalo-logo">Z</div>
-            <div class="zalo-phone">0378<span>257</span>342</div>
-        </div>
-        <p style="color: #0f0; text-shadow: 0 0 8px #0f0; margin-top: -10px; font-size: 1.1rem;">📞 Gọi hoặc nhắn Zalo để được hỗ trợ</p>
-    </div>
+    <!-- Footer -->
+    <footer class="relative z-10 border-t border-[#00ff41]/20 bg-black py-6 px-4 text-center text-xs text-gray-500">
+        <p>© 2026 <span class="text-[#00ff41] font-bold">DI NGUY</span> // CYBER RECOVERY &amp; SECURITY SERVICES. ALL RIGHTS RESERVED.</p>
+    </footer>
 
+    <!-- SCRIPT HIỆU ỨNG MATRIX, CODE CHẠY LIÊN TỤC & COPY -->
     <script>
-        // Matrix effect
+        // 1. HIỆU ỨNG MATRIX RAIN TRÊN CANVAS TOÀN MÀN HÌNH
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
 
-        let width = window.innerWidth;
-        let height = window.innerHeight;
-        canvas.width = width;
-        canvas.height = height;
-
-        const chars = 'アカサタナハマヤラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<>[]{}!@#$%^&*()';
-        const fontSize = 16;
-        const columns = Math.floor(width / fontSize);
-        const drops = [];
-
-        for (let i = 0; i < columns; i++) {
-            drops[i] = Math.floor(Math.random() * height / fontSize);
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const matrixChars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*<>/{}[]DI_NGUY_SYS';
+        const fontSize = 15;
+        let columns = Math.floor(canvas.width / fontSize);
+        let drops = Array(columns).fill(1);
+
+        window.addEventListener('resize', () => {
+            columns = Math.floor(canvas.width / fontSize);
+            drops = Array(columns).fill(1);
+        });
 
         function drawMatrix() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-            ctx.fillRect(0, 0, width, height);
+            // Tạo vệt mờ đuôi ký tự
+            ctx.fillStyle = 'rgba(3, 7, 6, 0.08)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = '#0f0';
-            ctx.font = fontSize + 'px monospace';
-            ctx.shadowColor = '#0f0';
-            ctx.shadowBlur = 10;
+            ctx.font = fontSize + 'px "JetBrains Mono", monospace';
 
             for (let i = 0; i < drops.length; i++) {
-                const text = chars[Math.floor(Math.random() * chars.length)];
+                const text = matrixChars.charAt(Math.floor(Math.random() * matrixChars.length));
+                // Xen kẽ màu xanh lá neon và xanh cyan
+                ctx.fillStyle = Math.random() > 0.85 ? '#00f3ff' : '#00ff41';
                 ctx.fillText(text, i * fontSize, drops[i] * fontSize);
 
-                if (drops[i] * fontSize > height && Math.random() > 0.975) {
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
                     drops[i] = 0;
                 }
                 drops[i]++;
             }
-            requestAnimationFrame(drawMatrix);
+        }
+        setInterval(drawMatrix, 42);
+
+        // 2. MÔ PHỎNG MÃ CODE CHẠY LIÊN TỤC TRONG 2 KHUNG TERMINAL
+        const term1 = document.getElementById('terminal-log-1');
+        const term2 = document.getElementById('terminal-log-2');
+
+        const recoveryLogs = [
+            "[INIT] Loading Di_Nguy Recovery Kernel v4.2.0...",
+            "[OK] Connecting to secure verification nodes...",
+            "[SCAN] Analyzing account token signature: 0x9F8A...E12C",
+            "[INFO] Checking 2FA & Email recovery endpoints...",
+            "[SYNC] Decrypting backup hash blocks [██████████] 100%",
+            "[AUTH] Identity verification protocol initialized.",
+            "[TRACE] Routing packet via encrypted tunnel #04...",
+            "[STATUS] Account recovery module READY.",
+            "[SYS_CORE] Security verification layer initialized.",
+            "[DB] Indexing social & cloud recovery vectors...",
+            "[SHIELD] Anti-hijack protection layer active.",
+            "[EXEC] Running deep diagnostic on UID target..."
+        ];
+
+        let logIndex = 0;
+        function pushTerminal1() {
+            const line = document.createElement('div');
+            const now = new Date().toTimeString().split(' ')[0];
+            line.innerHTML = `<span class="text-gray-500">[${now}]</span> ${recoveryLogs[logIndex % recoveryLogs.length]}`;
+            term1.appendChild(line);
+            if (term1.children.length > 9) {
+                term1.removeChild(term1.firstChild);
+            }
+            logIndex++;
         }
 
-        drawMatrix();
-
-        window.addEventListener('resize', () => {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-            // Reset columns
-            const newColumns = Math.floor(width / fontSize);
-            for (let i = 0; i < newColumns; i++) {
-                if (drops[i] === undefined) drops[i] = Math.floor(Math.random() * height / fontSize);
+        function generateHexLine() {
+            let hex = '';
+            for (let i = 0; i < 6; i++) {
+                hex += Math.floor(Math.random() * 65535).toString(16).toUpperCase().padStart(4, '0') + ' ';
             }
-        });
+            const status = Math.random() > 0.3 ? 'VERIFIED' : 'STREAMING';
+            return `0x${Math.floor(Math.random()*9999).toString(16).padStart(4,'0')}: ${hex} [${status}]`;
+        }
 
-        // Thêm hiệu ứng cho các dòng code (tự động reset)
-        // Đã dùng CSS animation nên không cần JS thêm
+        function pushTerminal2() {
+            const line = document.createElement('div');
+            line.textContent = generateHexLine();
+            term2.appendChild(line);
+            if (term2.children.length > 9) {
+                term2.removeChild(term2.firstChild);
+            }
+        }
+
+        // Khởi tạo dữ liệu ban đầu và cho chạy liên tục
+        for (let i = 0; i < 6; i++) {
+            pushTerminal1();
+            pushTerminal2();
+        }
+        setInterval(pushTerminal1, 950);
+        setInterval(pushTerminal2, 320);
+
+        // 3. CHỨC NĂNG SAO CHÉP SỐ ĐIỆN THOẠI ZALO (KHÔNG DÙNG ALERT)
+        const copyBtn = document.getElementById('copy-phone-btn');
+        const copyBtnText = document.getElementById('copy-btn-text');
+        const copyToast = document.getElementById('copy-toast');
+
+        copyBtn.addEventListener('click', () => {
+            const phone = '0378257342';
+            const tempInput = document.createElement('input');
+            tempInput.value = phone;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            copyBtnText.textContent = 'ĐÃ SAO CHÉP!';
+            copyToast.classList.remove('opacity-0');
+
+            setTimeout(() => {
+                copyBtnText.textContent = 'SAO CHÉP SĐT';
+                copyToast.classList.add('opacity-0');
+            }, 3000);
+        });
     </script>
 </body>
 </html>
